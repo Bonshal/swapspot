@@ -1,6 +1,7 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { categories } from '../../mockData';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Smartphone, Car, Home, Sofa, ShoppingBag, Package, Book, Music, Briefcase } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 const CategoryBar: React.FC = () => {

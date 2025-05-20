@@ -6,6 +6,20 @@ export const formatPrice = (price: number, currency: string = '$'): string => {
 };
 
 /**
+ * Format a number as currency
+ * @param amount Number to format
+ * @param currency Currency code (default: INR)
+ * @returns Formatted currency string
+ */
+export const formatCurrency = (amount: number, currency: string = 'INR'): string => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0
+  }).format(amount);
+};
+
+/**
  * Formats a date string to a relative time (e.g., "2 days ago")
  */
 export const formatRelativeTime = (dateString: string): string => {

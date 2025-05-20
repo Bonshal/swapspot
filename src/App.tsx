@@ -1,30 +1,21 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
+import ListingsPage from './pages/ListingsPage';
+import ListingDetailPage from './pages/ListingDetailPage';
+import CreateListingPage from './pages/CreateListingPage';
+import ProfilePage from './pages/ProfilePage';
+import MyListingsPage from './pages/MyListingsPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
+import { ToastContainer } from './components/ui/Toast';
 
 // Create a client
 const queryClient = new QueryClient();
-
-// Protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = useAuthStore(state => state.isAuthenticated);
-  const checkAuth = useAuthStore(state => state.checkAuth);
-  
-  // Check if we have a token in localStorage
-  const hasToken = checkAuth();
-  
-  if (!isAuthenticated && !hasToken) {
-    // Redirect to login if not authenticated
-    return <Navigate to="/login" />;
-  }
-  
-  return <>{children}</>;
-};
 
 function App() {
   // Initialize auth state from localStorage on app load
@@ -37,13 +28,34 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <ToastContainer />
         <Routes>
+          {/* Public routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/listings" element={<ListingsPage />} />
+          <Route path="/listings/:id" element={<ListingDetailPage />} />
+          
+          {/* Protected routes */}
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/my-listings" element={
+            <ProtectedRoute>
+              <MyListingsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/listings/create" element={
+            <ProtectedRoute>
+              <CreateListingPage />
             </ProtectedRoute>
           } />
         </Routes>

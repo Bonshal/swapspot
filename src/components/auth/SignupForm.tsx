@@ -1,41 +1,43 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
+import { useAuthStore } from '../../store/authStore';
 
 const SignupForm: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const navigate = useNavigate();
+  
+  const signup = useAuthStore(state => state.signup);
+  const loading = useAuthStore(state => state.loading);
+  const error = useAuthStore(state => state.error);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      // Use local error state for password mismatch
+      useAuthStore.setState({ error: 'Passwords do not match' });
       return;
     }
     
-    setLoading(true);
-    setError('');
+    if (!termsAccepted) {
+      useAuthStore.setState({ error: 'You must accept the terms of service' });
+      return;
+    }
 
     try {
-      // Mock signup for now, will be replaced with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Store token in localStorage (placeholder)
-      localStorage.setItem('auth_token', 'mock_token');
+      // Use the signup function from auth store
+      await signup(name, email, password);
       
       // Redirect to homepage
       navigate('/');
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      // Error handling is managed by the auth store
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -116,6 +118,8 @@ const SignupForm: React.FC = () => {
             id="terms"
             type="checkbox"
             required
+            checked={termsAccepted}
+            onChange={(e) => setTermsAccepted(e.target.checked)}
             className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
           />
           <label htmlFor="terms" className="block ml-2 text-sm text-gray-700">
@@ -125,8 +129,8 @@ const SignupForm: React.FC = () => {
         
         <Button 
           type="submit" 
-          className="w-full px-4 py-2 font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          disabled={loading}
+          fullWidth
+          isLoading={loading}
         >
           {loading ? 'Creating account...' : 'Create account'}
         </Button>

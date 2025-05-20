@@ -3,14 +3,17 @@ import { Search, Menu, X, Bell, MessageSquare, User, Plus, Heart, LogOut } from 
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import { useAuthStore } from '../../store/authStore';
+import { useSearchListings } from '../../utils/search';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
   const logout = useAuthStore(state => state.logout);
   const navigate = useNavigate();
+  const { handleSearch } = useSearchListings();
   
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
@@ -23,6 +26,11 @@ const Header: React.FC = () => {
   const handleNavigate = (path: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     navigate(path);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch(searchTerm);
   };
   
   return (
@@ -42,14 +50,18 @@ const Header: React.FC = () => {
           
           {/* Search Bar - Hidden on mobile */}
           <div className="hidden md:flex flex-1 mx-8">
-            <div className="relative w-full max-w-2xl">
+            <form className="relative w-full max-w-2xl" onSubmit={handleSearchSubmit}>
               <input
                 type="text"
                 placeholder="Search products, brands and categories"
                 className="w-full px-4 py-2 pl-10 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-neutral-400" />
-            </div>
+              <button type="submit" className="absolute left-3 top-2.5">
+                <Search className="h-5 w-5 text-neutral-400" />
+              </button>
+            </form>
           </div>
           
           {/* Navigation - Desktop */}
@@ -87,7 +99,7 @@ const Header: React.FC = () => {
                 <Button
                   variant="accent"
                   icon={<Plus className="h-4 w-4" />}
-                  onClick={handleNavigate('/sell')}
+                  onClick={handleNavigate('/listings/create')}
                 >
                   Sell Now
                 </Button>
@@ -170,14 +182,18 @@ const Header: React.FC = () => {
       
       {/* Mobile Search - Only visible on mobile */}
       <div className="md:hidden px-4 pb-3">
-        <div className="relative w-full">
+        <form onSubmit={handleSearchSubmit} className="relative w-full">
           <input
             type="text"
             placeholder="Search products..."
             className="w-full px-4 py-2 pl-10 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Search className="absolute left-3 top-2.5 h-5 w-5 text-neutral-400" />
-        </div>
+          <button type="submit" className="absolute left-3 top-2.5">
+            <Search className="h-5 w-5 text-neutral-400" />
+          </button>
+        </form>
       </div>
       
       {/* Mobile Menu */}
@@ -229,9 +245,9 @@ const Header: React.FC = () => {
                   </div>
                 </a>
                 <a 
-                  href="/sell" 
+                  href="/listings/create" 
                   className="block px-3 py-2 mt-4 text-base font-medium bg-accent-500 text-white rounded-lg text-center"
-                  onClick={handleNavigate('/sell')}
+                  onClick={handleNavigate('/listings/create')}
                 >
                   Sell Now
                 </a>

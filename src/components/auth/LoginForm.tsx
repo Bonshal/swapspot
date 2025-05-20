@@ -1,33 +1,30 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
+import { useAuthStore } from '../../store/authStore';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
+  
+  const login = useAuthStore(state => state.login);
+  const loading = useAuthStore(state => state.loading);
+  const error = useAuthStore(state => state.error);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
 
     try {
-      // Mock login for now, will be replaced with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Use the login function from auth store
+      await login(email, password);
       
-      // Store token in localStorage (placeholder)
-      localStorage.setItem('auth_token', 'mock_token');
-      
-      // Redirect to homepage
+      // Redirect to homepage on success
       navigate('/');
     } catch (err) {
-      setError('Login failed. Please check your credentials.');
+      // Error handling is managed by the auth store
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -80,6 +77,8 @@ const LoginForm: React.FC = () => {
             <input
               id="remember-me"
               type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
               className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
             />
             <label htmlFor="remember-me" className="block ml-2 text-sm text-gray-700">
@@ -96,8 +95,8 @@ const LoginForm: React.FC = () => {
         
         <Button 
           type="submit" 
-          className="w-full px-4 py-2 font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          disabled={loading}
+          fullWidth
+          isLoading={loading}
         >
           {loading ? 'Signing in...' : 'Sign in'}
         </Button>
