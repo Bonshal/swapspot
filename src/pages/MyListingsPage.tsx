@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/layout/Layout';
-import { useListingStore } from '../store/listingStore';
 import { useAuthStore } from '../store/authStore';
 import { Listing } from '../types/listing';
 import { formatCurrency } from '../utils/formatters';
@@ -8,43 +7,46 @@ import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { Edit, Trash2, Plus, AlertCircle } from 'lucide-react';
 import { showToast } from '../components/ui/Toast';
+import { listingService } from '../services/api';
 
 const MyListingsPage: React.FC = () => {
-  const { user, isAuthenticated } = useAuthStore();
-  const { listings, loading, fetchListings } = useListingStore();
+  const { isAuthenticated } = useAuthStore();
   const [myListings, setMyListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
+      return;
     }
     
-    fetchListings();
-  }, [isAuthenticated, navigate, fetchListings]);
-
-  useEffect(() => {
-    // Filter listings to only show the user's listings
-    // In a real app, we would make a specific API call to get user's listings
-    if (user) {
-      setMyListings(listings.filter(listing => listing.sellerId === user.id));
-    }
-  }, [listings, user]);
+    const fetchUserListings = async () => {
+      setLoading(true);
+      try {
+        const listings = await listingService.getUserListings();
+        setMyListings(listings);
+      } catch (error) {
+        console.error('Error fetching user listings:', error);
+        showToast.error('Failed to load your listings');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUserListings();
+  }, [isAuthenticated, navigate]);
 
   const handleDeleteListing = async (listingId: string) => {
     setIsDeleting(true);
     
     try {
-      // This would be an API call in a real app
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock success - filter out the deleted listing locally
+      await listingService.deleteListing(listingId);
       setMyListings(prevListings => prevListings.filter(listing => listing.id !== listingId));
-      
       showToast.success('Listing deleted successfully');
     } catch (error) {
-      showToast.error('Failed to delete listing');
+      showToast.error(error instanceof Error ? error.message : 'Failed to delete listing');
       console.error('Error deleting listing:', error);
     } finally {
       setIsDeleting(false);

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Listing, ListingFilters } from '../types/listing';
-import { getListings, getListingById, createListing } from '../mockData/listings';
+import { listingService } from '../services/api';
 
 interface ListingStore {
   listings: Listing[];
@@ -31,7 +31,7 @@ export const useListingStore = create<ListingStore>((set, get) => ({
     try {
       // Use current filters merged with any new filters
       const currentFilters = filters ? { ...get().filters, ...filters } : get().filters;
-      const fetchedListings = getListings(currentFilters);
+      const fetchedListings = await listingService.getListings(currentFilters);
       set({ 
         listings: fetchedListings, 
         loading: false,
@@ -40,7 +40,7 @@ export const useListingStore = create<ListingStore>((set, get) => ({
     } catch (error) {
       console.error('Error fetching listings:', error);
       set({ 
-        error: 'Failed to fetch listings. Please try again.', 
+        error: error instanceof Error ? error.message : 'Failed to fetch listings. Please try again.', 
         loading: false 
       });
     }
@@ -49,21 +49,14 @@ export const useListingStore = create<ListingStore>((set, get) => ({
   fetchListingById: async (id) => {
     set({ loading: true, error: null });
     try {
-      const listing = getListingById(id);
-      if (listing) {
-        set({ currentListing: listing, loading: false });
-      } else {
-        set({ 
-          error: 'Listing not found.', 
-          loading: false,
-          currentListing: null
-        });
-      }
+      const listing = await listingService.getListingById(id);
+      set({ currentListing: listing, loading: false });
     } catch (error) {
       console.error('Error fetching listing:', error);
       set({ 
-        error: 'Failed to fetch listing details. Please try again.', 
-        loading: false 
+        error: error instanceof Error ? error.message : 'Failed to fetch listing details. Please try again.', 
+        loading: false,
+        currentListing: null
       });
     }
   },
@@ -71,7 +64,7 @@ export const useListingStore = create<ListingStore>((set, get) => ({
   addListing: async (listingData) => {
     set({ loading: true, error: null });
     try {
-      const newListing = await createListing(listingData);
+      const newListing = await listingService.createListing(listingData);
       set(state => ({ 
         listings: [newListing, ...state.listings],
         loading: false
@@ -79,7 +72,7 @@ export const useListingStore = create<ListingStore>((set, get) => ({
     } catch (error) {
       console.error('Error creating listing:', error);
       set({ 
-        error: 'Failed to create listing. Please try again.', 
+        error: error instanceof Error ? error.message : 'Failed to create listing. Please try again.', 
         loading: false 
       });
     }

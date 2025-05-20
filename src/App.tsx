@@ -10,6 +10,8 @@ import ListingDetailPage from './pages/ListingDetailPage';
 import CreateListingPage from './pages/CreateListingPage';
 import ProfilePage from './pages/ProfilePage';
 import MyListingsPage from './pages/MyListingsPage';
+import MessagesPage from './pages/MessagesPage';
+import ConversationPage from './pages/ConversationPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 import { ToastContainer } from './components/ui/Toast';
@@ -51,6 +53,16 @@ function App() {
           <Route path="/my-listings" element={
             <ProtectedRoute>
               <MyListingsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/messages" element={
+            <ProtectedRoute>
+              <MessagesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/messages/:conversationId" element={
+            <ProtectedRoute>
+              <ConversationPage />
             </ProtectedRoute>
           } />
           <Route path="/listings/create" element={

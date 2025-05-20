@@ -1,17 +1,22 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '../components/layout/Layout';
 import { MessageSquare, Heart, Flag, Shield, Calendar, MapPin } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useListingStore } from '../store/listingStore';
+import { useAuthStore } from '../store/authStore';
 import { formatCurrency, formatRelativeTime } from '../utils/formatters';
 import { getSimilarListings } from '../mockData/listings';
+import ContactSellerModal from '../components/ui/ContactSellerModal';
+import { showToast } from '../components/ui/Toast';
 
 const ListingDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentListing, loading, error, fetchListingById } = useListingStore();
+  const { user } = useAuthStore();
   const [similarListings, setSimilarListings] = React.useState<any[]>([]);
+  const [contactSellerOpen, setContactSellerOpen] = useState(false);
   
   useEffect(() => {
     if (id) {
@@ -56,6 +61,14 @@ const ListingDetailPage: React.FC = () => {
       </Layout>
     );
   }
+  
+  const handleContactSeller = () => {
+    if (!user) {
+      showToast.error('Please log in to contact the seller.');
+      return;
+    }
+    setContactSellerOpen(true);
+  };
   
   return (
     <Layout>
@@ -187,7 +200,11 @@ const ListingDetailPage: React.FC = () => {
                 </div>
               </div>
               
-              <Button fullWidth icon={<MessageSquare className="w-4 h-4 mr-2" />}>
+              <Button 
+                fullWidth 
+                icon={<MessageSquare className="w-4 h-4 mr-2" />}
+                onClick={handleContactSeller}
+              >
                 Message Seller
               </Button>
             </div>
@@ -242,6 +259,16 @@ const ListingDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Contact Seller Modal */}
+      <ContactSellerModal 
+        isOpen={contactSellerOpen} 
+        onClose={() => setContactSellerOpen(false)} 
+        sellerName={currentListing.sellerName}
+        sellerId={currentListing.sellerId}
+        listingId={currentListing.id}
+        listingTitle={currentListing.title}
+      />
     </Layout>
   );
 };

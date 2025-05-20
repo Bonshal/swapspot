@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Menu, X, Bell, MessageSquare, User, Plus, Heart, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import { useAuthStore } from '../../store/authStore';
 import { useSearchListings } from '../../utils/search';
+import { useMessageStore } from '../../store/messageStore';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,8 +13,24 @@ const Header: React.FC = () => {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
   const logout = useAuthStore(state => state.logout);
+  const { unreadCount, getUnreadCount } = useMessageStore();
   const navigate = useNavigate();
   const { handleSearch } = useSearchListings();
+  
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Initial fetch of unread count
+      getUnreadCount();
+      
+      // Set up polling for new messages every 30 seconds
+      const interval = setInterval(() => {
+        getUnreadCount();
+      }, 30000);
+      
+      // Clean up interval on unmount
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, getUnreadCount]);
   
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
@@ -75,7 +92,11 @@ const Header: React.FC = () => {
                   onClick={handleNavigate('/messages')}
                 >
                   <MessageSquare className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 bg-accent-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-accent-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </Button>
                 
                 <Button
@@ -220,7 +241,9 @@ const Header: React.FC = () => {
                   <div className="flex items-center">
                     <MessageSquare className="h-5 w-5 mr-3 text-neutral-500" />
                     Messages
-                    <span className="ml-auto bg-accent-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                    <span className="ml-auto bg-accent-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount}
+                    </span>
                   </div>
                 </a>
                 <a 

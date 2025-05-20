@@ -1,5 +1,6 @@
 import { User } from '../store/authStore';
 import { Listing, ListingFilters } from '../types/listing';
+import { Conversation, Message } from '../types/message';
 
 // Base URL for the API
 const API_BASE_URL = 'https://api.swapspot.com'; // Will be replaced with the actual API URL
@@ -34,14 +35,12 @@ const apiFetch = async <T>(
     const token = localStorage.getItem('auth_token');
     
     // Set default headers for JSON API
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers
-    };
+    const headers = new Headers(options.headers);
+    headers.set('Content-Type', 'application/json');
     
     // Add authentication token if available
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers.set('Authorization', `Bearer ${token}`);
     }
     
     // Make the request
@@ -147,5 +146,42 @@ export const listingService = {
   
   getUserListings: async (): Promise<Listing[]> => {
     return apiFetch('/listings/user');
+  }
+};
+
+/**
+ * Messaging API endpoints
+ */
+export const messageService = {
+  getConversations: async (): Promise<Conversation[]> => {
+    return apiFetch('/messages/conversations');
+  },
+  
+  getConversationMessages: async (conversationId: string): Promise<Message[]> => {
+    return apiFetch(`/messages/conversations/${conversationId}`);
+  },
+  
+  sendMessage: async (receiverId: string, content: string, listingId?: string): Promise<Message> => {
+    return apiFetch('/messages', {
+      method: 'POST',
+      body: JSON.stringify({ receiverId, content, listingId })
+    });
+  },
+  
+  markAsRead: async (messageId: string): Promise<{ success: boolean }> => {
+    return apiFetch(`/messages/${messageId}/read`, {
+      method: 'PUT'
+    });
+  },
+  
+  startConversationAboutListing: async (
+    sellerId: string, 
+    listingId: string, 
+    initialMessage: string
+  ): Promise<{ conversationId: string; message: Message }> => {
+    return apiFetch('/messages/start', {
+      method: 'POST',
+      body: JSON.stringify({ sellerId, listingId, message: initialMessage })
+    });
   }
 };

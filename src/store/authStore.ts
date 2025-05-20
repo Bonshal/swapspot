@@ -1,6 +1,7 @@
 import { create } from 'zustand';
+import { authService } from '../services/api';
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
@@ -36,31 +37,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      // This will be replaced with an actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock successful login
-      const mockUser = {
-        id: '123',
-        name: 'Test User',
-        email,
-        joinedDate: 'May 2022'
-      };
-      
-      const token = 'mock_jwt_token';
+      const response = await authService.login(email, password);
       
       // Store token in localStorage for persistence
-      localStorage.setItem('auth_token', token);
+      localStorage.setItem('auth_token', response.token);
       
       set({
-        user: mockUser,
-        token,
+        user: response.user,
+        token: response.token,
         isAuthenticated: true,
         loading: false
       });
     } catch (error) {
       set({
-        error: 'Login failed. Please check your credentials.',
+        error: error instanceof Error ? error.message : 'Login failed. Please check your credentials.',
         loading: false
       });
       throw error;
@@ -71,31 +61,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      // This will be replaced with an actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock successful signup
-      const mockUser = {
-        id: '123',
-        name,
-        email,
-        joinedDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' })
-      };
-      
-      const token = 'mock_jwt_token';
+      const response = await authService.signup(name, email, password);
       
       // Store token in localStorage for persistence
-      localStorage.setItem('auth_token', token);
+      localStorage.setItem('auth_token', response.token);
       
       set({
-        user: mockUser,
-        token,
+        user: response.user,
+        token: response.token,
         isAuthenticated: true,
         loading: false
       });
     } catch (error) {
       set({
-        error: 'Signup failed. Please try again.',
+        error: error instanceof Error ? error.message : 'Signup failed. Please try again.',
         loading: false
       });
       throw error;
@@ -117,22 +96,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const token = localStorage.getItem('auth_token');
     
     if (token) {
-      // In a real app, we would validate the token here
-      // For now, just update the state if a token exists
-      
-      // Mock user data for development
-      const mockUser = {
-        id: '123',
-        name: 'Test User',
-        email: 'test@example.com',
-        joinedDate: 'May 2022'
-      };
-      
+      // Set initial authenticated state based on token presence
       set({
         token,
         isAuthenticated: true,
-        user: mockUser
+        loading: true
       });
+      
+      // Then fetch the actual user profile in the background
+      authService.getProfile()
+        .then(user => {
+          set({
+            user,
+            loading: false
+          });
+        })
+        .catch(() => {
+          // If profile fetch fails, token might be invalid
+          localStorage.removeItem('auth_token');
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            loading: false
+          });
+        });
+      
       return true;
     }
     
@@ -143,19 +132,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      // This will be replaced with an actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update user data in state
-      const currentUser = get().user;
-      if (!currentUser) {
-        throw new Error('User not authenticated');
-      }
-      
-      const updatedUser = {
-        ...currentUser,
-        ...profileData
-      };
+      const updatedUser = await authService.updateProfile(profileData);
       
       set({
         user: updatedUser,
@@ -163,7 +140,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
     } catch (error) {
       set({
-        error: 'Profile update failed. Please try again.',
+        error: error instanceof Error ? error.message : 'Profile update failed. Please try again.',
         loading: false
       });
       throw error;
@@ -174,16 +151,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      // This will be replaced with an actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, we would validate the current password
-      // and update the password on the server
-      
+      await authService.changePassword(currentPassword, newPassword);
       set({ loading: false });
     } catch (error) {
       set({
-        error: 'Password change failed. Please check your current password.',
+        error: error instanceof Error ? error.message : 'Password change failed. Please check your current password.',
         loading: false
       });
       throw error;
