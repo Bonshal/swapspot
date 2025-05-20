@@ -3,10 +3,13 @@ import Layout from '../components/layout/Layout';
 import { useListingStore } from '../store/listingStore';
 import { Link } from 'react-router-dom';
 import { formatCurrency } from '../utils/formatters';
+import { categorySubcategories, ListingCategory } from '../types/listing';
 
 const ListingsPage: React.FC = () => {
   const { listings, filters, loading, fetchListings, updateFilters } = useListingStore();
   const [category, setCategory] = useState(filters.category || '');
+  const [subcategory, setSubcategory] = useState(filters.subcategory || '');
+  const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState<string>(filters.minPrice?.toString() || '');
   const [maxPrice, setMaxPrice] = useState<string>(filters.maxPrice?.toString() || '');
   const [location, setLocation] = useState(filters.location || '');
@@ -17,9 +20,21 @@ const ListingsPage: React.FC = () => {
     fetchListings();
   }, [fetchListings]);
   
+  // Update subcategories when category changes
+  useEffect(() => {
+    if (category && Object.keys(categorySubcategories).includes(category)) {
+      setAvailableSubcategories(categorySubcategories[category as ListingCategory]);
+      setSubcategory(''); // Reset subcategory when category changes
+    } else {
+      setAvailableSubcategories([]);
+      setSubcategory('');
+    }
+  }, [category]);
+  
   const handleApplyFilters = () => {
     updateFilters({
       category: category || undefined,
+      subcategory: subcategory || undefined,
       minPrice: minPrice ? Number(minPrice) : undefined,
       maxPrice: maxPrice ? Number(maxPrice) : undefined,
       location: location || undefined,
@@ -75,6 +90,25 @@ const ListingsPage: React.FC = () => {
                   <option value="other">Other</option>
                 </select>
               </div>
+              
+              {/* Subcategory Filter - Only show when a category is selected */}
+              {availableSubcategories.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="font-medium mb-2 text-sm">Subcategory</h3>
+                  <select 
+                    className="w-full p-2 border border-gray-300 rounded"
+                    value={subcategory}
+                    onChange={(e) => setSubcategory(e.target.value)}
+                  >
+                    <option value="">All Subcategories</option>
+                    {availableSubcategories.map((subcat, index) => (
+                      <option key={index} value={subcat}>
+                        {subcat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               
               {/* Price Range */}
               <div className="mb-4">

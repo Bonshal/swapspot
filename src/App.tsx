@@ -7,11 +7,15 @@ import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import ListingsPage from './pages/ListingsPage';
 import ListingDetailPage from './pages/ListingDetailPage';
+import CategoryPage from './pages/CategoryPage';
 import CreateListingPage from './pages/CreateListingPage';
 import ProfilePage from './pages/ProfilePage';
 import MyListingsPage from './pages/MyListingsPage';
 import MessagesPage from './pages/MessagesPage';
 import ConversationPage from './pages/ConversationPage';
+import AadhaarVerificationPage from './pages/AadhaarVerificationPage';
+import ProfileCompletePage from './pages/ProfileCompletePage';
+import AdminPage from './pages/AdminPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 import { ToastContainer } from './components/ui/Toast';
@@ -36,8 +40,10 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/verify-aadhaar" element={<AadhaarVerificationPage />} />
           <Route path="/listings" element={<ListingsPage />} />
           <Route path="/listings/:id" element={<ListingDetailPage />} />
+          <Route path="/category/:categoryName" element={<CategoryPage />} />
           
           {/* Protected routes */}
           <Route path="/dashboard" element={
@@ -68,6 +74,21 @@ function App() {
           <Route path="/listings/create" element={
             <ProtectedRoute>
               <CreateListingPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/aadhaar-verification" element={
+            <ProtectedRoute>
+              <AadhaarVerificationPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile-complete" element={
+            <ProtectedRoute>
+              <ProfileCompletePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <AdminPage />
             </ProtectedRoute>
           } />
         </Routes>

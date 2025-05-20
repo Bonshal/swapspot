@@ -138,6 +138,11 @@ const ListingDetailPage: React.FC = () => {
                 <div className="text-gray-700">
                   <span className="text-gray-500 block text-sm">Category</span>
                   {currentListing.category.charAt(0).toUpperCase() + currentListing.category.slice(1)}
+                  {currentListing.subcategory && (
+                    <span className="text-xs text-gray-500 block mt-1">
+                      {currentListing.subcategory}
+                    </span>
+                  )}
                 </div>
                 <div className="text-gray-700">
                   <span className="text-gray-500 block text-sm">Posted</span>

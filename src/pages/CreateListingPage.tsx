@@ -1,22 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/layout/Layout';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Upload, X, Plus } from 'lucide-react';
+import { Camera, X } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { useListingStore } from '../store/listingStore';
 import { useAuthStore } from '../store/authStore';
+import { categorySubcategories, ListingCategory } from '../types/listing';
 
 const CreateListingPage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [subcategory, setSubcategory] = useState('');
   const [price, setPrice] = useState('');
   const [condition, setCondition] = useState('');
   const [location, setLocation] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [availableSubcategories, setAvailableSubcategories] = useState<string[]>([]);
   const { addListing, loading } = useListingStore();
+  // User is kept for future authentication checks
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { user } = useAuthStore();
   const navigate = useNavigate();
+
+  // Update subcategories when category changes
+  useEffect(() => {
+    if (category && Object.keys(categorySubcategories).includes(category)) {
+      setAvailableSubcategories(categorySubcategories[category as ListingCategory]);
+      setSubcategory(''); // Reset subcategory when category changes
+    } else {
+      setAvailableSubcategories([]);
+      setSubcategory('');
+    }
+  }, [category]);
 
   // Simulated image upload
   const handleImageUpload = () => {
@@ -48,6 +64,7 @@ const CreateListingPage: React.FC = () => {
         title,
         description,
         category,
+        subcategory,
         price: parseFloat(price),
         condition,
         location,
@@ -125,6 +142,26 @@ const CreateListingPage: React.FC = () => {
                   <option value="other">Other</option>
                 </select>
               </div>
+              
+              {availableSubcategories.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Subcategory
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    value={subcategory}
+                    onChange={(e) => setSubcategory(e.target.value)}
+                  >
+                    <option value="">Select a subcategory</option>
+                    {availableSubcategories.map((subcat, index) => (
+                      <option key={index} value={subcat}>
+                        {subcat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
