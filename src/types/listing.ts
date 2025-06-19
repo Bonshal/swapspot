@@ -8,7 +8,7 @@ export interface Listing {
   subcategory?: string;
   condition: string;
   images: string[];
-  sellerId: string;
+  user_id: string;
   sellerName: string;
   sellerAvatar: string;
   sellerRating: number;

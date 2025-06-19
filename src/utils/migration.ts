@@ -1,5 +1,4 @@
-import { db } from '../config/firebase';
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { supabase } from '../config/supabase';
 
 /**
  * This utility helps migrate existing listings to include subcategory field
@@ -10,53 +9,57 @@ export const migrateListingsToIncludeSubcategory = async () => {
     console.log('Starting migration: Adding subcategory to listings...');
     
     // Get all listings
-    const listingsSnapshot = await getDocs(collection(db, 'listings'));
+    const { data: listings, error } = await supabase
+      .from('listings')
+      .select('*');
+    
+    if (error) throw error;
     
     // Count for statistics
     let totalProcessed = 0;
     let totalUpdated = 0;
     let errors = 0;
-    
-    // Process each listing
-    const updatePromises = listingsSnapshot.docs.map(async (listingDoc) => {
+      // Process each listing
+    const updatePromises = listings.map(async (listing: any) => {
       try {
-        const listingData = listingDoc.data();
         totalProcessed++;
         
         // Skip if subcategory already exists
-        if (listingData.subcategory) {
+        if (listing.subcategory) {
           return;
         }
         
         // Assign default subcategory based on category
         let subcategory = '';
         
-        if (listingData.category === 'electronics') {
+        if (listing.category === 'electronics') {
           subcategory = 'Other Electronics';
-        } else if (listingData.category === 'furniture') {
+        } else if (listing.category === 'furniture') {
           subcategory = 'Other Furniture';
-        } else if (listingData.category === 'clothing') {
+        } else if (listing.category === 'clothing') {
           subcategory = 'Other Clothing';
-        } else if (listingData.category === 'vehicles') {
+        } else if (listing.category === 'vehicles') {
           subcategory = 'Other Vehicles';
-        } else if (listingData.category === 'real-estate') {
+        } else if (listing.category === 'real-estate') {
           subcategory = 'Other Real Estate';
-        } else if (listingData.category === 'services') {
+        } else if (listing.category === 'services') {
           subcategory = 'Other Services';
-        } else if (listingData.category === 'jobs') {
+        } else if (listing.category === 'jobs') {
           subcategory = 'Other Jobs';
         } else {
-          subcategory = 'Miscellaneous';
-        }
+          subcategory = 'Miscellaneous';        }
         
         // Update the document with subcategory
-        await updateDoc(doc(db, 'listings', listingDoc.id), {
-          subcategory
-        });
+        const { error: updateError } = await supabase
+          .from('listings')
+          .update({ subcategory })
+          .eq('id', listing.id);
+        
+        if (updateError) throw updateError;
         
         totalUpdated++;
       } catch (error) {
-        console.error(`Error updating listing ${listingDoc.id}:`, error);
+        console.error(`Error updating listing ${listing.id}:`, error);
         errors++;
       }
     });

@@ -270,7 +270,7 @@ const ListingDetailPage: React.FC = () => {
         isOpen={contactSellerOpen} 
         onClose={() => setContactSellerOpen(false)} 
         sellerName={currentListing.sellerName}
-        sellerId={currentListing.sellerId}
+        sellerId={currentListing.user_id}
         listingId={currentListing.id}
         listingTitle={currentListing.title}
       />
