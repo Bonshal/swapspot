@@ -6,16 +6,20 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useListingStore } from '../store/listingStore';
 import { useAuthStore } from '../store/authStore';
 import { formatCurrency, formatRelativeTime } from '../utils/formatters';
-import { getSimilarListings } from '../mockData/listings';
+// import { getSimilarListings } from '../mockData/listings';
+import { listingService } from '../services/api';
 import ContactSellerModal from '../components/ui/ContactSellerModal';
 import { showToast } from '../components/ui/Toast';
+import { Listing } from '../types/listing';
 
 const ListingDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentListing, loading, error, fetchListingById } = useListingStore();
   const { user } = useAuthStore();
-  const [similarListings, setSimilarListings] = React.useState<any[]>([]);
+  const [similarListings, setSimilarListings] = useState<Listing[]>([])
+  const [similarLoading, setSimilarLoading] = useState(false);
+  
   const [contactSellerOpen, setContactSellerOpen] = useState(false);
   
   useEffect(() => {
@@ -25,11 +29,28 @@ const ListingDetailPage: React.FC = () => {
   }, [id, fetchListingById]);
   
   useEffect(() => {
-    if (currentListing) {
-      setSimilarListings(getSimilarListings(currentListing.id));
+    const fetchSimilarListings = async() =>{
+    if (currentListing && currentListing.id) {
+      setSimilarLoading(true)
+      try{
+        const similar = await listingService.getSimilarListings(
+          currentListing.id,
+          currentListing.category,
+          4
+        );
+        setSimilarListings(similar);
+      }catch(error){
+        console.error('Error fetching similar listings:', error);
+        setSimilarListings([])
+      }finally{
+        setSimilarLoading(false)
+      }
     }
-  }, [currentListing]);
-  
+  };
+    fetchSimilarListings();
+
+ }, [currentListing]);
+
   // Show loading state
   if (loading) {
     return (
@@ -40,7 +61,7 @@ const ListingDetailPage: React.FC = () => {
       </Layout>
     );
   }
-  
+
   // Show error state
   if (error || !currentListing) {
     return (
@@ -109,7 +130,7 @@ const ListingDetailPage: React.FC = () => {
               <div className="flex items-center text-gray-500 mb-4">
                 <span className="mr-4">
                   <Calendar className="inline-block w-4 h-4 mr-1" />
-                  {formatRelativeTime(currentListing.createdAt)}
+                  {formatRelativeTime(currentListing.created_at)}
                 </span>
                 <span>
                   <MapPin className="inline-block w-4 h-4 mr-1" />
@@ -146,7 +167,7 @@ const ListingDetailPage: React.FC = () => {
                 </div>
                 <div className="text-gray-700">
                   <span className="text-gray-500 block text-sm">Posted</span>
-                  {new Date(currentListing.createdAt).toLocaleDateString('en-IN', {
+                  {new Date(currentListing.created_at).toLocaleDateString('en-IN', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric'
@@ -175,19 +196,19 @@ const ListingDetailPage: React.FC = () => {
               <div className="flex items-center mb-4">
                 <div className="mr-3">
                   <img 
-                    src={currentListing.sellerAvatar} 
-                    alt={`${currentListing.sellerName} profile`} 
+                    src={currentListing.selleravatar} 
+                    alt={`${currentListing.sellername} profile`} 
                     className="w-14 h-14 rounded-full object-cover"
                   />
                 </div>
                 <div>
-                  <h2 className="font-bold text-lg">{currentListing.sellerName}</h2>
-                  <p className="text-gray-500 text-sm">Member since {currentListing.sellerJoinedDate}</p>
+                  <h2 className="font-bold text-lg">{currentListing.sellername}</h2>
+                  <p className="text-gray-500 text-sm">Member since {currentListing.sellerjoinedDate}</p>
                 </div>
               </div>
               
               <div className="flex items-center text-sm mb-4">
-  {currentListing.sellerVerified && (
+  {currentListing.sellerverified && (
     <div className="flex items-center mr-3">
       <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium flex items-center">
         <Shield className="w-3 h-3 mr-1" />
@@ -196,17 +217,17 @@ const ListingDetailPage: React.FC = () => {
     </div>
   )}
   <div className="flex items-center">
-    {currentListing.sellerRating && (
+    {currentListing.sellerrating && (
       <>
         <span className="text-amber-400">
-          {'★'.repeat(Math.floor(currentListing.sellerRating))}
-          {currentListing.sellerRating % 1 > 0 ? '⯫' : ''}
-          {'☆'.repeat(5 - Math.ceil(currentListing.sellerRating))}
+          {'★'.repeat(Math.floor(currentListing.sellerrating))}
+          {currentListing.sellerrating % 1 > 0 ? '⯫' : ''}
+          {'☆'.repeat(5 - Math.ceil(currentListing.sellerrating))}
         </span>
-        <span className="ml-1">{currentListing.sellerRating.toFixed(1)} (42 reviews)</span>
+        <span className="ml-1">{currentListing.sellerrating.toFixed(1)} (42 reviews)</span>
       </>
     )}
-    {!currentListing.sellerRating && (
+    {!currentListing.sellerrating && (
       <span className="text-gray-400 text-sm">No ratings yet</span>
     )}
   </div>
@@ -276,7 +297,7 @@ const ListingDetailPage: React.FC = () => {
       <ContactSellerModal 
         isOpen={contactSellerOpen} 
         onClose={() => setContactSellerOpen(false)} 
-        sellerName={currentListing.sellerName}
+        sellerName={currentListing.sellername}
         sellerId={currentListing.user_id}
         listingId={currentListing.id}
         listingTitle={currentListing.title}

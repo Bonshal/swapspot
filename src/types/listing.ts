@@ -8,14 +8,18 @@ export interface Listing {
   subcategory?: string;
   condition: string;
   images: string[];
+  featured: boolean,
+  favourites: number,
   user_id: string;
   sellerName: string;
   sellerAvatar: string;
   sellerRating: number;
   sellerVerified: boolean;
   sellerJoinedDate: string;
+
   createdAt: string;
   updatedAt: string;
+
 }
 
 export interface ListingFilters {
@@ -27,6 +31,7 @@ export interface ListingFilters {
   condition?: string[];
   searchTerm?: string;
   sortBy?: 'recent' | 'price-low' | 'price-high' | 'popularity';
+  featured?: boolean
 }
 
 export type ListingCondition = 'new' | 'like-new' | 'good' | 'fair' | 'poor';

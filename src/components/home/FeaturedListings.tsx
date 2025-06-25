@@ -1,12 +1,34 @@
-import React from 'react';
+import React,{ useEffect, useState} from 'react';
+import {Listing} from '../../types/listing'
 import { ArrowRight, Heart, MapPin, Eye } from 'lucide-react';
-import { getFeaturedListings } from '../../mockData';
+import { listingService } from '../../services/api';
 import { Card, CardImage, CardBody } from '../ui/Card';
 import Badge from '../ui/Badge';
 import { formatPrice, formatRelativeTime } from '../../utils/formatters';
 
 const FeaturedListings: React.FC = () => {
-  const featuredListings = getFeaturedListings();
+  const [featuredListings , setFeaturedListings] = useState<Listing[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(()=>{
+    const fetchFeaturedListings = async() =>{
+      try{
+        const listings = await listingService.getFeaturedListings();
+        setFeaturedListings(listings)
+      }catch(error){
+        console.error('Error fetchig featured listings:', error)
+      } finally{
+        setLoading(false);
+      }
+    }
+
+    fetchFeaturedListings()
+
+  }, [])
+
+  if(loading){
+    return <div>Loading featured listings...</div>
+  }
   
   return (
     <section className="py-12 bg-white">
@@ -69,18 +91,18 @@ const FeaturedListings: React.FC = () => {
                 <div className="flex items-center justify-between text-sm text-neutral-500 mb-1">
                   <div className="flex items-center">
                     <MapPin className="h-3.5 w-3.5 mr-1" />
-                    <span className="truncate">{listing.location.city}</span>
+                    <span className="truncate">{listing.location}</span>
                   </div>
-                  <span>{formatRelativeTime(listing.createdAt)}</span>
+                  <span>{formatRelativeTime(listing.created_at)}</span>
                 </div>
                 
                 <div className="mt-3 pt-3 border-t border-neutral-100 flex items-center">
                   <img 
-                    src={listing.seller.avatar} 
-                    alt={listing.seller.name}
+                    src={listing.selleravatar} 
+                    alt={listing.sellername}
                     className="h-6 w-6 rounded-full mr-2"
                   />
-                  <span className="text-sm text-neutral-600">{listing.seller.name}</span>
+                  <span className="text-sm text-neutral-600">{listing.sellername}</span>
                 </div>
               </CardBody>
             </Card>
