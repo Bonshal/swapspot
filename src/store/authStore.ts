@@ -17,6 +17,20 @@ export interface User {
   joinedDate?: string;
 }
 
+interface UpdateProfileData {
+  name?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  profileImage?: string;
+  location?: string;
+  bio?: string;
+  avatar?: File | string;
+  joinedDate?: string;
+}
+
 interface AuthState { 
   user: User | null;
   isAuthenticated: boolean;
@@ -28,7 +42,7 @@ interface AuthState {
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => boolean;
-  updateProfile: (profileData: Partial<User>) => Promise<void>;
+  updateProfile: (profileData: UpdateProfileData) => Promise<void>;
   changePassword: (newPassword: string) => Promise<void>;
   completeProfile: (profileData: any) => Promise<User>;
 }
@@ -216,13 +230,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return false;
   },
   
-  updateProfile: async (profileData: Partial<User>) => {
+  updateProfile: async (profileData: UpdateProfileData) => {
     set({ loading: true, error: null });
     
     try {
       const { user: currentUser } = get();
       if (!currentUser) {
         throw new Error('User not authenticated');
+      }
+
+      let avatarUrl: string | undefined = typeof profileData.avatar === 'string' ? profileData.avatar : undefined;
+      
+      // If avatar is a File, upload it to Supabase Storage
+      if (profileData.avatar && typeof profileData.avatar === 'object' && 'name' in profileData.avatar) {
+        const file = profileData.avatar as File;
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        const fileName = `avatar_${currentUser.id}_${Date.now()}.${fileExt}`;
+        
+        // Upload to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('profile-images')
+          .upload(fileName, file, {
+            upsert: true
+          });
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('profile-images')
+          .getPublicUrl(fileName);
+
+        avatarUrl = publicUrl;
       }
 
       const { error } = await supabase
@@ -236,15 +275,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           pincode: profileData.pincode,
           location: profileData.location,
           bio: profileData.bio,
-          avatar: profileData.avatar,
-          profile_image: profileData.profileImage,
+          avatar: avatarUrl, // Store URL only
+          profile_image: avatarUrl, // Keep both for compatibility
           updated_at: new Date().toISOString()
         })
         .eq('id', currentUser.id);
 
       if (error) throw error;
 
-      const updatedUser = { ...currentUser, ...profileData };
+      const updatedUser = { 
+        ...currentUser, 
+        ...profileData,
+        avatar: avatarUrl,
+        profileImage: avatarUrl
+      };
       
       set({
         user: updatedUser,
@@ -292,15 +336,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       
       // Handle profile image upload if provided
       if (profileData.profileImage instanceof File) {
-        const fileExt = profileData.profileImage.name.split('.').pop();
-        const fileName = `${currentUser.id}_${Date.now()}.${fileExt}`;
+        const fileExt = profileData.profileImage.name.split('.').pop() || 'jpg';
+        const fileName = `profile_${currentUser.id}_${Date.now()}.${fileExt}`;
         
+        // Upload to Supabase Storage
         const { error: uploadError } = await supabase.storage
           .from('profile-images')
-          .upload(fileName, profileData.profileImage);
+          .upload(fileName, profileData.profileImage, {
+            upsert: true
+          });
 
         if (uploadError) throw uploadError;
 
+        // Get public URL
         const { data: { publicUrl } } = supabase.storage
           .from('profile-images')
           .getPublicUrl(fileName);

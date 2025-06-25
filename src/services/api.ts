@@ -394,7 +394,19 @@ export const listingService = {
       
       if (error) throw error;
       
-      return data as Listing[];
+      // Map seller fields for all listings
+      const mappedData = data.map(listing => ({
+        ...listing,
+        sellerName: listing.sellername,
+        sellerAvatar: listing.selleravatar,
+        sellerJoinedDate: listing.sellerjoineddate,
+        sellerVerified: listing.sellerverified,
+        sellerRating: listing.sellerrating,
+        createdAt: formatTimestamp(listing.created_at),
+        updatedAt: formatTimestamp(listing.updated_at)
+      }));
+      
+      return mappedData as Listing[];
     } catch (error) {
       return handleApiError(error);
     }
@@ -421,43 +433,80 @@ export const listingService = {
         ...data,
         price: data.price,
         createdAt: formatTimestamp(data.created_at),
-        updatedAt: formatTimestamp(data.updated_at)
+        updatedAt: formatTimestamp(data.updated_at),
+        // Map seller fields to expected names
+        sellerName: data.sellername,
+        sellerAvatar: data.selleravatar,
+        sellerJoinedDate: data.sellerjoineddate,
+        sellerVerified: data.sellerverified,
+        sellerRating: data.sellerrating
       } as Listing;
     } catch (error) {
       return handleApiError(error);
     }
-  },    createListing: async (listingData: Partial<Listing>): Promise<Listing> => {
-    try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        throw new Error('User not authenticated');
-      }      // Create listing document with only basic required fields
-      const { data, error } = await supabase
-        .from('listings')
-        .insert({
-          title: listingData.title,
-          description: listingData.description,
-          category: listingData.category,
-          price: listingData.price,
-          location: listingData.location,
-          user_id: currentUser.id
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      return {
-        id: data.id,
-        ...data,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      } as Listing;
-    } catch (error) {
-      return handleApiError(error);
+  },   
+   createListing: async (listingData: Partial<Listing>): Promise<Listing> => {
+  try {
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      throw new Error('User not authenticated');
     }
-  },
-  
+    
+    // Get user profile information for seller details
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+
+
+    if (profileError) {
+      console.warn('Profile not found, using basic user data');
+    }
+
+    // Create listing document with seller information
+const { data, error } = await supabase
+  .from('listings')
+  .insert({
+    title: listingData.title,
+    description: listingData.description,
+    category: listingData.category,
+    price: listingData.price,
+    location: listingData.location,
+    user_id: currentUser.id,
+    // Store seller information from profile
+    sellername: profile?.name || currentUser.user_metadata?.name || 'Unknown User',
+    selleravatar: profile?.avatar || profile?.profile_image || '',
+    sellerverified: false,
+    sellerrating: null,
+    sellerjoineddate: profile?.created_at || currentUser.created_at,
+    views: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  })
+  .select()
+  .single();
+
+if (error) throw error;
+
+return {
+  id: data.id,
+  ...data,
+  createdAt: data.created_at,
+  updatedAt: data.updated_at,
+  // Map to the expected frontend field names
+  sellerName: data.sellername,
+  sellerAvatar: data.selleravatar,
+  sellerLocation: data.sellerlocation,
+  sellerJoinedDate: data.sellerjoineddate,
+  sellerVerified: data.sellerverified,
+  sellerRating: data.sellerrating
+} as Listing;
+  } catch (error) {
+    return handleApiError(error);
+  }
+},
   updateListing: async (id: string, updatedListingData: Partial<Listing>): Promise<Listing> => {
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -553,7 +602,19 @@ export const listingService = {
       
       if (error) throw error;
       
-      return data as Listing[];
+      // Map seller fields for user listings
+      const mappedData = data.map(listing => ({
+        ...listing,
+        sellerName: listing.sellername,
+        sellerAvatar: listing.selleravatar,
+        sellerJoinedDate: listing.sellerjoineddate,
+        sellerVerified: listing.sellerverified,
+        sellerRating: listing.sellerrating,
+        createdAt: formatTimestamp(listing.created_at),
+        updatedAt: formatTimestamp(listing.updated_at)
+      }));
+      
+      return mappedData as Listing[];
     } catch (error) {
       return handleApiError(error);
     }

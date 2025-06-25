@@ -22,6 +22,7 @@ const ProfilePage: React.FC = () => {
   });
   
   const [avatar, setAvatar] = useState(user?.avatar || 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -52,7 +53,10 @@ const ProfilePage: React.FC = () => {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // In a real app, this would upload to a server
+      // Store the file for upload
+      setAvatarFile(file);
+      
+      // Create preview
       const reader = new FileReader();
       reader.onload = () => {
         if (typeof reader.result === 'string') {
@@ -103,7 +107,7 @@ const ProfilePage: React.FC = () => {
         phone: profileData.phone,
         location: profileData.location,
         bio: profileData.bio,
-        avatar: avatar
+        avatar: avatarFile ? avatarFile : avatar // Pass File if available, otherwise URL
       });
       
       setIsEditing(false);
@@ -155,7 +159,7 @@ const ProfilePage: React.FC = () => {
       }
       
       // Change password using the auth store method
-      await changePassword(securityData.currentPassword, securityData.newPassword);
+      await changePassword( securityData.newPassword);
       
       // Reset form
       setSecurityData({

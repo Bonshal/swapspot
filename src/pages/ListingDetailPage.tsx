@@ -187,23 +187,30 @@ const ListingDetailPage: React.FC = () => {
               </div>
               
               <div className="flex items-center text-sm mb-4">
-                {currentListing.sellerVerified && (
-                  <div className="flex items-center mr-3">
-                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium flex items-center">
-                      <Shield className="w-3 h-3 mr-1" />
-                      Verified
-                    </span>
-                  </div>
-                )}
-                <div className="flex items-center">
-                  <span className="text-amber-400">
-                    {'★'.repeat(Math.floor(currentListing.sellerRating))}
-                    {currentListing.sellerRating % 1 > 0 ? '⯫' : ''}
-                    {'☆'.repeat(5 - Math.ceil(currentListing.sellerRating))}
-                  </span>
-                  <span className="ml-1">{currentListing.sellerRating.toFixed(1)} (42 reviews)</span>
-                </div>
-              </div>
+  {currentListing.sellerVerified && (
+    <div className="flex items-center mr-3">
+      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium flex items-center">
+        <Shield className="w-3 h-3 mr-1" />
+        Verified
+      </span>
+    </div>
+  )}
+  <div className="flex items-center">
+    {currentListing.sellerRating && (
+      <>
+        <span className="text-amber-400">
+          {'★'.repeat(Math.floor(currentListing.sellerRating))}
+          {currentListing.sellerRating % 1 > 0 ? '⯫' : ''}
+          {'☆'.repeat(5 - Math.ceil(currentListing.sellerRating))}
+        </span>
+        <span className="ml-1">{currentListing.sellerRating.toFixed(1)} (42 reviews)</span>
+      </>
+    )}
+    {!currentListing.sellerRating && (
+      <span className="text-gray-400 text-sm">No ratings yet</span>
+    )}
+  </div>
+</div>
               
               <Button 
                 fullWidth 
