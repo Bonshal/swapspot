@@ -1,12 +1,35 @@
-import React from 'react';
-import { getRecentListings } from '../../mockData';
+import React,{useState,useEffect} from 'react';
+import { Listing } from '../../types/listing';
+import { listingService } from '../../services/api';
 import { Card, CardImage, CardBody } from '../ui/Card';
 import { MapPin, Heart } from 'lucide-react';
 import { formatPrice, formatRelativeTime } from '../../utils/formatters';
 
 const RecentListings: React.FC = () => {
-  const recentListings = getRecentListings().slice(0, 8); // Get only the first 8 items
+
+  const [recentListings, setRecentListings] = useState<Listing[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(()=>{
+    const fetchRecentListings = async() =>{
+      try{
+        const listings = await listingService.getRecentListings();
+        setRecentListings(listings)
+      }catch(error){
+        console.error('Error fetching recent listings:', error)
+      }
+      finally{
+        setLoading(false)
+      }
+    }
   
+  fetchRecentListings()
+  },[])
+  
+  if(loading){
+    return <div>Loading recent listings...</div>
+  }
+
   return (
     <section className="py-12 bg-white">
       <div className="container-custom mx-auto">
@@ -41,9 +64,9 @@ const RecentListings: React.FC = () => {
                 <div className="flex items-center justify-between text-sm text-neutral-500">
                   <div className="flex items-center">
                     <MapPin className="h-3.5 w-3.5 mr-1" />
-                    <span className="truncate">{listing.location.city}</span>
+                    <span className="truncate">{listing.location}</span>
                   </div>
-                  <span>{formatRelativeTime(listing.createdAt)}</span>
+                  <span>{formatRelativeTime(listing.created_at)}</span>
                 </div>
               </CardBody>
             </Card>

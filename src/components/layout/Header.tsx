@@ -1,15 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Menu, X, Bell, MessageSquare, User, Plus, Heart, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Button from '../ui/Button';
 import { useAuthStore } from '../../store/authStore';
 import { useSearchListings } from '../../utils/search';
 import { useMessageStore } from '../../store/messageStore';
+import supabase from '../../config/supabase';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [userProfile, setUserProfile]= useState<{
+    avatar?: string,
+    profile_image?:string,
+    name?:string
+    
+  } | null>(null)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
   const user = useAuthStore(state => state.user);
   const logout = useAuthStore(state => state.logout);
@@ -18,6 +25,34 @@ const Header: React.FC = () => {
   const { handleSearch } = useSearchListings();
   
   useEffect(() => {
+    const fetchUserProfile = async()=>{
+      if(isAuthenticated && user)
+      {
+        try{
+          const { data,error}= await supabase
+          .from('profiles')
+          .select('avatar,profile_image,name')
+          .eq('id',user.id)
+          .single();
+
+          if(data && !error)
+          {
+            setUserProfile(data);
+          }
+        }catch(error)
+        {
+          console.error('Error fetching user Profile', error)
+        }
+      }else{
+        setUserProfile(null);
+      }
+    }
+
+    fetchUserProfile();
+  }, [isAuthenticated,user])
+
+
+useEffect(()=>{
     if (isAuthenticated) {
       // Initial fetch of unread count
       getUnreadCount();
@@ -49,6 +84,16 @@ const Header: React.FC = () => {
     e.preventDefault();
     handleSearch(searchTerm);
   };
+  
+
+  //Get user avatar with fallback
+  const getUserAvatar=() =>{
+    if(userProfile?.avatar) return userProfile.avatar;
+    if(userProfile?.profile_image) return userProfile.profile_image
+
+    return "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400";
+  }
+
   
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -131,9 +176,13 @@ const Header: React.FC = () => {
                     className="flex items-center focus:outline-none"
                   >
                     <img
-                      src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400"
+                      src={getUserAvatar()}
                       alt="User"
                       className="h-8 w-8 rounded-full object-cover"
+                      onError={((e)=>{
+                        //fallback if image fails to load
+                        e.currentTarget.src = "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=400"
+                      })}
                     />
                   </button>
                   

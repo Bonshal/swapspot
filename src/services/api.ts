@@ -3,6 +3,7 @@ import { Listing, ListingFilters } from '../types/listing';
 import { Conversation, Message } from '../types/message';
 import { supabase } from '../config/supabase';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { getSimilarListings } from '../mockData/listings';
 
 // Convert timestamp to string
 const formatTimestamp = (timestamp: string) => {
@@ -447,8 +448,70 @@ export const listingService = {
       throw handleApiError(error)
     }
   },
-  
-  getListingById: async (id: string): Promise<Listing> => {
+
+  getSimilarListings: async( listingId: string, category: string, limit: number=4): Promise<Listing[]>=>{
+    try{
+      const {data, error} = await supabase
+      .from('listings')
+      .select('*')
+      .eq('category', category)
+      .eq('status','active')
+      .neq('id',listingId)
+      .order('created_at',{ascending: false})
+      .limit(limit)
+
+      if(error) throw error
+      return data.map(listing => ({
+        id: listing.id,
+        ...listing,
+        createdAt: formatTimestamp(listing.created_at),
+        updatedAt: formatTimestamp(listing.updated_at),
+        // Map seller information
+        sellerName: listing.profiles?.full_name || listing.sellername || 'Unknown User',
+        sellerAvatar: listing.profiles?.avatar_url || listing.selleravatar || '',
+        sellerRating: listing.sellerrating || 0,
+        sellerVerified: listing.sellerverified || false,
+        sellerJoinedDate: listing.sellerjoineddate || listing.created_at
+      })) as Listing[];
+    }
+   catch(error){
+    console.error('Error fetching similar listings:', error)
+    throw handleApiError(error)
+  }
+},
+
+
+getRecentListings: async(): Promise<Listing[]>=>{
+  try{
+    const {data, error}= await supabase
+    .from('listings')
+    .select('*')
+    .eq('status','active')
+    .order('created_at',{ascending: false})
+    .limit(8)
+
+    if(error) throw error
+    return data.map(listing => ({
+        id: listing.id,
+        ...listing,
+        createdAt: formatTimestamp(listing.created_at),
+        updatedAt: formatTimestamp(listing.updated_at),
+        // Map seller information
+        sellerName: listing.profiles?.full_name || listing.sellername || 'Unknown User',
+        sellerAvatar: listing.profiles?.avatar_url || listing.selleravatar || '',
+        sellerRating: listing.sellerrating || 0,
+        sellerVerified: listing.sellerverified || false,
+        sellerJoinedDate: listing.sellerjoineddate || listing.created_at
+      })) as Listing[];
+  }catch(error)
+  {
+    console.error('error fetching recent listings:', error)
+    throw handleApiError(error)
+  }
+},
+
+
+getListingById: async (id: string): Promise<Listing> => {
     try {
       const { data, error } = await supabase
         .from('listings')
