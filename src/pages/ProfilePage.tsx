@@ -6,7 +6,7 @@ import Button from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { ErrorMessage } from '../utils/errorHandling';
 import { showToast } from '../components/ui/Toast';
-import supabase from '../config/supabase';
+
 
 const ProfilePage: React.FC = () => {
   const { user, isAuthenticated, updateProfile, changePassword, loading: authLoading } = useAuthStore();
