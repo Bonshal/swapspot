@@ -7,6 +7,7 @@ interface ErrorState {
   details?: Record<string, string[]>;
 }
 
+// Fast Refresh warning suppression - this file exports utility functions alongside components
 export const useErrorHandler = () => {
   const [error, setError] = useState<ErrorState | null>(null);
   

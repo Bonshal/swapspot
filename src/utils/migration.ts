@@ -19,8 +19,8 @@ export const migrateListingsToIncludeSubcategory = async () => {
     let totalProcessed = 0;
     let totalUpdated = 0;
     let errors = 0;
-      // Process each listing
-    const updatePromises = listings.map(async (listing: any) => {
+    // Process each listing
+    const updatePromises = listings.map(async (listing: Record<string, unknown>) => { // Replaced any with proper type
       try {
         totalProcessed++;
         

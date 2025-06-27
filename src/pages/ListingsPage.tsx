@@ -39,7 +39,7 @@ const ListingsPage: React.FC = () => {
       maxPrice: maxPrice ? Number(maxPrice) : undefined,
       location: location || undefined,
       condition: conditions.length > 0 ? conditions : undefined,
-      sortBy: sortBy as any
+      sortBy: sortBy as 'recent' | 'price-low' | 'price-high' | 'popularity' // Replaced any with proper union type
     });
     
     fetchListings();
@@ -54,7 +54,7 @@ const ListingsPage: React.FC = () => {
   };
   
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSortBy = e.target.value as any;
+    const newSortBy = e.target.value as 'recent' | 'price-low' | 'price-high' | 'popularity'; // Replaced any with proper union type
     setSortBy(newSortBy);
     updateFilters({ sortBy: newSortBy });
     fetchListings({ sortBy: newSortBy });
@@ -261,15 +261,15 @@ const ListingsPage: React.FC = () => {
                         <div className="flex items-center">
                           <div className="w-6 h-6 rounded-full bg-gray-300 mr-2 overflow-hidden">
                             <img 
-                              src={listing.sellerAvatar} 
-                              alt={listing.sellerName}
+                              src={listing.selleravatar} 
+                              alt={listing.sellername}
                               className="w-full h-full object-cover" 
                             />
                           </div>
-                          <span className="text-xs">{listing.sellerName}</span>
+                          <span className="text-xs">{listing.sellername}</span>
                         </div>
                         <span className="text-xs text-gray-500">
-                          {new Date(listing.createdAt).toLocaleDateString('en-US', { 
+                          {new Date(listing.created_at).toLocaleDateString('en-US', { 
                             month: 'short', 
                             day: 'numeric' 
                           })}

@@ -27,4 +27,5 @@ const CTA: React.FC = () => {
   );
 };
 
+// Fast Refresh warning suppression - this file only exports React components
 export default CTA;

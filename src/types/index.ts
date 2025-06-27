@@ -107,6 +107,6 @@ export interface Notification {
   userId: string;
   type: NotificationType;
   read: boolean;
-  data: any;
+  data: Record<string, unknown>; // Replaced any with proper type
   createdAt: string;
 }

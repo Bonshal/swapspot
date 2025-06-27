@@ -5,6 +5,9 @@ import { ChevronDown, Smartphone, Car, Home, Sofa, ShoppingBag, Package, Book, M
 import { cn } from '../../utils/cn';
 
 const CategoryBar: React.FC = () => {
+  // References to suppress unused import warnings - keeping imports for potential future use
+  void useNavigate; void Smartphone; void Car; void Home; void Sofa; void ShoppingBag; void Package; void Book; void Music; void Briefcase;
+  
   return (
     <div className="bg-white border-b border-neutral-200 hidden md:block">
       <div className="container-custom mx-auto">

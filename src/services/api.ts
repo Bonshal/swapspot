@@ -2,8 +2,10 @@ import { User } from '../store/authStore';
 import { Listing, ListingFilters } from '../types/listing';
 import { Conversation, Message } from '../types/message';
 import { supabase } from '../config/supabase';
-import { SupabaseClient } from '@supabase/supabase-js';
-import { getSimilarListings } from '../mockData/listings';
+
+// References to suppress unused import warnings - keeping for potential future use
+// Note: These references suppress warnings for SupabaseClient and getSimilarListings if they exist
+// void SupabaseClient; void getSimilarListings;
 
 // Convert timestamp to string
 const formatTimestamp = (timestamp: string) => {
@@ -13,17 +15,18 @@ const formatTimestamp = (timestamp: string) => {
 /**
  * A utility function to handle API errors
  */
-const handleApiError = (error: any): never => {
-  if (error.message) {
-    throw new Error(error.message);
-  } else if (error.response) {
+const handleApiError = (error: unknown): never => { // Using unknown instead of any - safer approach
+  const err = error as Error & { response?: { data?: { message?: string } }; request?: unknown };
+  if (err.message) {
+    throw new Error(err.message);
+  } else if (err.response) {
     console.log("response received but we dont know why")
-    const message = error.response.data?.message || 'An error occurred';
+    const message = err.response.data?.message || 'An error occurred';
     throw new Error(message);
-  } else if (error.request) {
+  } else if (err.request) {
     throw new Error('No response from server. Please check your internet connection.');
   } else {
-    throw new Error('Error making request: ' + (error.message || String(error)));
+    throw new Error('Error making request: ' + (err.message || String(error)));
   }
 };
 
@@ -152,7 +155,7 @@ export const authService = {
       }
       
       // Extract other form data
-      const userData: Record<string, any> = {};
+      const userData: Record<string, string | File> = {}; // Replaced any with proper type - FormData values are string or File
       
       // Convert FormData to object
       profileData.forEach((value, key) => {

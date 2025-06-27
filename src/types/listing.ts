@@ -5,20 +5,24 @@ export interface Listing {
   price: number;
   location: string;
   category: string;
+  views?: number,
   subcategory?: string;
   condition: string;
   images: string[];
   featured: boolean,
-  favourites: number,
+  favorites: number,
   user_id: string;
-  sellerName: string;
-  sellerAvatar: string;
-  sellerRating: number;
-  sellerVerified: boolean;
-  sellerJoinedDate: string;
-
-  createdAt: string;
-  updatedAt: string;
+  sellername: string;
+  selleravatar: string;
+  sellerrating: number;
+  sellerverified: boolean;
+  sellerjoinedDate: string;
+  sellerlocation: string
+  sellerphone: string
+  created_at: string;
+  updated_at: string;
+  negotiable?: boolean
+  
 
 }
 

@@ -260,33 +260,41 @@ const ListingDetailPage: React.FC = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="font-semibold mb-4">Similar Listings</h3>
               <div className="space-y-4">
-                {similarListings.map((listing) => (
-                  <div key={listing.id} className="flex">
-                    <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded overflow-hidden mr-3">
-                      <img 
-                        src={listing.images[0]} 
-                        alt={listing.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-grow">
-                      <Link to={`/listings/${listing.id}`} className="font-medium text-sm line-clamp-2 hover:text-primary-500">
-                        {listing.title}
-                      </Link>
-                      <p className="text-accent-500 font-bold text-sm mt-1">{formatCurrency(listing.price)}</p>
-                      <p className="text-gray-500 text-xs mt-1">{listing.location.split(',')[0]}</p>
-                    </div>
+                {similarLoading ? (
+                  <div className="flex justify-center items-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500"></div>
                   </div>
-                ))}
-                
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  fullWidth
-                  onClick={() => navigate('/listings', { state: { category: currentListing.category } })}
-                >
-                  View More
-                </Button>
+                ) : (
+                  <>
+                    {similarListings.map((listing) => (
+                      <div key={listing.id} className="flex">
+                        <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded overflow-hidden mr-3">
+                          <img 
+                            src={listing.images[0]} 
+                            alt={listing.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-grow">
+                          <Link to={`/listings/${listing.id}`} className="font-medium text-sm line-clamp-2 hover:text-primary-500">
+                            {listing.title}
+                          </Link>
+                          <p className="text-accent-500 font-bold text-sm mt-1">{formatCurrency(listing.price)}</p>
+                          <p className="text-gray-500 text-xs mt-1">{listing.location.split(',')[0]}</p>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      fullWidth
+                      onClick={() => navigate('/listings', { state: { category: currentListing.category } })}
+                    >
+                      View More
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>

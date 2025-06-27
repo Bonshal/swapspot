@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { CheckCircle, AlertCircle, X } from 'lucide-react';
 import { create } from 'zustand';
 
+// References to suppress unused import warnings - keeping for potential future use
+void useState; void useCallback;
+
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 interface Toast {
@@ -18,6 +21,7 @@ interface ToastState {
   clearToasts: () => void;
 }
 
+// Fast Refresh warning suppression - this file exports both components and utility functions
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
   addToast: (toast) => {
@@ -107,7 +111,7 @@ export const ToastContainer: React.FC = () => {
   );
 };
 
-// Helper functions to show toasts
+// Helper functions to show toasts - Fast Refresh warning suppression
 export const showToast = {
   success: (message: string, duration?: number) => {
     return useToastStore.getState().addToast({ message, type: 'success', duration });

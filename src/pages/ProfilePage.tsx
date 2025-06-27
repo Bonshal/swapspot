@@ -6,6 +6,7 @@ import Button from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { ErrorMessage } from '../utils/errorHandling';
 import { showToast } from '../components/ui/Toast';
+import supabase from '../config/supabase';
 
 const ProfilePage: React.FC = () => {
   const { user, isAuthenticated, updateProfile, changePassword, loading: authLoading } = useAuthStore();
@@ -52,18 +53,25 @@ const ProfilePage: React.FC = () => {
   // Handle file upload
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    console.log('Avatar file selected')
     if (file) {
       // Store the file for upload
       setAvatarFile(file);
       
       // Create preview
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          setAvatar(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+      // const reader = new FileReader();
+      // reader.onload = () => {
+      //   if (typeof reader.result === 'string') {
+      //     setAvatar(reader.result);
+      //   }
+      // };
+      // reader.readAsDataURL(file);
+
+          const previewUrl = URL.createObjectURL(file);
+        setAvatar(previewUrl);
+        console.log('🖼️ Preview URL created:', previewUrl);
+
+
     }
   };
   
@@ -90,26 +98,39 @@ const ProfilePage: React.FC = () => {
     }
   };
   
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+    console.log('Form submission started')
+
     try {
       // Validation
+
       if (!profileData.name.trim()) {
         throw new Error('Name is required');
       }
+
+      // const updateData = {
+      //   name: profileData.name,
+      //   phone: profileData.phone,
+      //   location: profileData.location,
+      //   bio: profileData.bio,
+      //   avatar: avatarUrl || ""
+      // }
       
       // Update profile using the auth store method
+
+      console.log('Validation passed, calling updateProfile...')
       await updateProfile({
         name: profileData.name,
         phone: profileData.phone,
         location: profileData.location,
         bio: profileData.bio,
-        avatar: avatarFile ? avatarFile : avatar // Pass File if available, otherwise URL
+        avatarFile: avatarFile // Pass File if available, otherwise URL
       });
-      
+      console.log('updated profile successfully')
       setIsEditing(false);
       showToast.success('Profile updated successfully!');
     } catch (err) {
@@ -179,6 +200,71 @@ const ProfilePage: React.FC = () => {
       setLoading(false);
     }
   };
+
+//  const testStorageAccess = async () => {
+//   try {
+//     console.log('🧪 Testing storage access...');
+    
+//     // Test 1: Check current authentication state
+//     const { data: { user }, error: userError } = await supabase.auth.getUser();
+//     console.log('🔐 Current user:', {
+//       authenticated: !!user,
+//       userId: user?.id,
+//       email: user?.email,
+//       error: userError
+//     });
+    
+//     // Test 2: Check session
+//     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+//     console.log('📋 Session:', {
+//       hasSession: !!session,
+//       accessToken: session?.access_token ? 'Present' : 'Missing',
+//       error: sessionError
+//     });
+    
+//     // Test 3: List buckets
+//     const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+//     console.log('📦 Buckets result:', {
+//       buckets: buckets?.map(b => ({ name: b.name, public: b.public })),
+//       error: bucketsError
+//     });
+    
+//     // Test 4: Try to access profile-images bucket specifically
+//     const { data: files, error: listError } = await supabase.storage
+//       .from('profile-images')
+//       .list('', { limit: 1 });
+//     console.log('📁 Profile-images bucket test:', {
+//       success: !listError,
+//       fileCount: files?.length || 0,
+//       error: listError
+//     });
+    
+//     // Test 5: Test upload with a tiny file
+//     const testFile = new File(['test'], 'test.txt', { type: 'text/plain' });
+//     const testFileName = `test-${Date.now()}.txt`;
+    
+//     const { data: uploadData, error: uploadError } = await supabase.storage
+//       .from('profile-images')
+//       .upload(testFileName, testFile);
+      
+//     console.log('🧪 Test upload result:', {
+//       success: !uploadError,
+//       uploadData,
+//       error: uploadError
+//     });
+    
+//     // Clean up test file if upload succeeded
+//     if (!uploadError) {
+//       await supabase.storage
+//         .from('profile-images')
+//         .remove([testFileName]);
+//       console.log('🗑️ Test file cleaned up');
+//     }
+    
+//   } catch (error) {
+//     console.error('🧪 Storage test failed:', error);
+//   }
+// };
   
   return (
     <Layout>
@@ -226,6 +312,7 @@ const ProfilePage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="col-span-2">
                   <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
+                  
                 </div>
                 
                 <div>

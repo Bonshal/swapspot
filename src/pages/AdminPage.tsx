@@ -5,13 +5,22 @@ import Layout from '../components/layout/Layout';
 import { useAuthStore } from '../store/authStore';
 import { Navigate } from 'react-router-dom';
 
+// Define proper type for migration result to replace any type
+interface MigrationResult {
+  success?: boolean;
+  totalProcessed?: number;
+  totalUpdated?: number;
+  errors?: number;
+  error?: string;
+}
+
 /**
  * Admin page for running database migrations and other maintenance tasks
  * Only accessible to admin users
  */
 const AdminPage: React.FC = () => {
   const { user, isAuthenticated } = useAuthStore();
-  const [migrationResult, setMigrationResult] = useState<any>(null);
+  const [migrationResult, setMigrationResult] = useState<MigrationResult | null>(null); // Using proper type instead of any
   const [isLoading, setIsLoading] = useState(false);
   
   // Check if user is admin (in a real app, this would be a proper role check)

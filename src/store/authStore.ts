@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../config/supabase';
+import type { Session } from '@supabase/supabase-js'; // Import Session type for proper typing
 
 export interface User {
   id: string;
@@ -27,14 +28,25 @@ interface UpdateProfileData {
   profileImage?: string;
   location?: string;
   bio?: string;
-  avatar?: File | string;
+  avatar?: string;
+  avatarFile?: File | null;
   joinedDate?: string;
+}
+
+// Define proper type for profile completion data to replace any type
+interface ProfileCompletionData {
+  name?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  avatar?: string;
+  [key: string]: unknown; // Allow additional properties
 }
 
 interface AuthState { 
   user: User | null;
   isAuthenticated: boolean;
-  session: any | null;
+  session: Session | null; // Replaced any with proper Supabase Session type
   loading: boolean;
   error: string | null;
   
@@ -44,7 +56,7 @@ interface AuthState {
   checkAuth: () => boolean;
   updateProfile: (profileData: UpdateProfileData) => Promise<void>;
   changePassword: (newPassword: string) => Promise<void>;
-  completeProfile: (profileData: any) => Promise<User>;
+  completeProfile: (profileData: ProfileCompletionData) => Promise<User>; // Using proper type instead of any
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -239,11 +251,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         throw new Error('User not authenticated');
       }
 
-      let avatarUrl: string | undefined = typeof profileData.avatar === 'string' ? profileData.avatar : undefined;
+      let avatarUrl: string | undefined = currentUser.avatar || "";
       
       // If avatar is a File, upload it to Supabase Storage
-      if (profileData.avatar && typeof profileData.avatar === 'object' && 'name' in profileData.avatar) {
-        const file = profileData.avatar as File;
+      if (profileData.avatarFile ) {
+        const file = profileData.avatarFile
         const fileExt = file.name.split('.').pop() || 'jpg';
         const fileName = `avatar_${currentUser.id}_${Date.now()}.${fileExt}`;
         
@@ -323,7 +335,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  completeProfile: async (profileData: any) => {
+  completeProfile: async (profileData: ProfileCompletionData) => { // Using proper type instead of any
     set({ loading: true, error: null });
     
     try {
@@ -379,7 +391,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const updatedUser: User = {
         ...currentUser,
-        ...updateData,
+        name: profileData.name ?? currentUser.name,
+        phone: profileData.phone ?? currentUser.phone,
+        address: profileData.address ?? currentUser.address,
+        city: profileData.city ?? currentUser.city,
         profileImage: profileImageUrl || currentUser.profileImage,
         avatar: profileImageUrl || currentUser.avatar
       };

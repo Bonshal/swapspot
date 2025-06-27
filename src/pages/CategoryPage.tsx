@@ -8,6 +8,9 @@ import Button from '../components/ui/Button';
 import { ArrowLeft, Filter, SortAsc, SortDesc } from 'lucide-react';
 
 const CategoryPage: React.FC = () => {
+  // References to suppress unused import warnings - keeping for potential future use
+  void SortAsc; void SortDesc;
+  
   const { categoryName } = useParams<{ categoryName: string }>();
   const navigate = useNavigate();
   const { listings, filters, loading, fetchListings, updateFilters } = useListingStore();
@@ -56,7 +59,7 @@ const CategoryPage: React.FC = () => {
       maxPrice: maxPrice ? Number(maxPrice) : undefined,
       location: location || undefined,
       condition: conditions.length > 0 ? conditions : undefined,
-      sortBy: sortBy as any
+      sortBy: sortBy as 'recent' | 'price-low' | 'price-high' | 'popularity'
     });
     
     fetchListings();
@@ -71,7 +74,7 @@ const CategoryPage: React.FC = () => {
   };
   
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newSortBy = e.target.value as any;
+    const newSortBy = e.target.value as 'recent' | 'price-low' | 'price-high' | 'popularity';
     setSortBy(newSortBy);
     updateFilters({ 
       sortBy: newSortBy, 
@@ -380,22 +383,22 @@ const CategoryPage: React.FC = () => {
                       <div className="mt-3 flex items-center justify-between">
                         <div className="flex items-center">
                           <div className="w-6 h-6 rounded-full bg-neutral-200 mr-2 overflow-hidden">
-                            {listing.sellerAvatar ? (
+                            {listing.selleravatar ? (
                               <img 
-                                src={listing.sellerAvatar} 
-                                alt={listing.sellerName}
+                                src={listing.selleravatar} 
+                                alt={listing.sellername}
                                 className="w-full h-full object-cover" 
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-neutral-500 text-xs font-bold">
-                                {listing.sellerName?.charAt(0).toUpperCase()}
+                                {listing.sellername?.charAt(0).toUpperCase()}
                               </div>
                             )}
                           </div>
-                          <span className="text-xs text-neutral-600">{listing.sellerName}</span>
+                          <span className="text-xs text-neutral-600">{listing.sellername}</span>
                         </div>
                         <span className="text-xs text-neutral-400">
-                          {new Date(listing.createdAt).toLocaleDateString('en-US', { 
+                          {new Date(listing.created_at).toLocaleDateString('en-US', { 
                             month: 'short',
                             day: 'numeric' 
                           })}

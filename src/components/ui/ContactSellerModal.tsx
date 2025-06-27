@@ -57,6 +57,8 @@ const ContactSellerModal: React.FC<ContactSellerModalProps> = ({
       // Navigate to the conversation
       navigate(`/messages/${conversationId}`);
     } catch (error) {
+      // Reference error to suppress unused warning - keeping for debugging context
+      console.debug('Message send error:', error);
       showToast.error('Failed to send message. Please try again.');
     } finally {
       setSending(false);

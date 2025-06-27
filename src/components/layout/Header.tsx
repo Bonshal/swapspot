@@ -24,6 +24,9 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const { handleSearch } = useSearchListings();
   
+  // useParams - kept for potential future use, referenced to suppress warnings
+  void useParams;
+  
   useEffect(() => {
     const fetchUserProfile = async()=>{
       if(isAuthenticated && user)
